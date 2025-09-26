@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WritingPreferenceBench: Beyond Correctness</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Math -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --accent: #14b8a6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #0f172a;
+            --text-light: #475569;
+            --text-lighter: #94a3b8;
+            --bg: #ffffff;
+            --bg-dark: #0f172a;
+            --bg-light: #f8fafc;
+            --bg-lighter: #f1f5f9;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-radial: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+            --gradient-mesh: linear-gradient(115deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #fda085 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
+            overflow-x: hidden;
+        }
+
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Enhanced Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background gradient */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: var(--gradient-radial);
+            opacity: 0.15;
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float-up 20s linear infinite;
+        }
+
+        @keyframes float-up {
+            from {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, #818cf8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(129, 140, 248, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(129, 140, 248, 0.8)); }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+            font-weight: 400;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            color: #cbd5e1;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .badge:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main {
+            padding: 6rem 0;
+            background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg) 100%);
+        }
+
+        .section {
+            margin-bottom: 8rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Key Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 900;
+            background: var(--gradient-mesh);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        /* Results Section */
+        .results-showcase {
+            background: white;
+            border-radius: 24px;
+            padding: 4rem;
+            box-shadow: var(--shadow-lg);
+            margin: 4rem 0;
+            position: relative;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 1200px) {
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        .result-card {
+            background: var(--gradient-subtle);
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .result-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .result-card:hover::after {
+            opacity: 1;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .result-metric {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 2;
+            line-height: 1;
+        }
+
+        .result-metric.success { color: var(--success); }
+        .result-metric.warning { color: var(--accent); }
+        .result-metric.danger { color: var(--warning); }
+
+        .result-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .result-desc {
+            color: var(--text-light);
+            line-height: 1.5;
+            position: relative;
+            z-index: 2;
+            font-size: 0.9rem;
+        }
+
+        /* Abstract */
+        .abstract {
+            background: white;
+            border-radius: 20px;
+            padding: 4rem;
+            margin: 4rem 0;
+            box-shadow: var(--shadow);
+            border-left: 6px solid var(--primary);
+        }
+
+        .abstract-content {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: var(--text);
+            text-align: justify;
+        }
+
+        .abstract-content strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Figures Grid */
+        .figures-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin: 4rem 0;
+        }
+
+        .figure-showcase {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+        }
+
+        .figure-showcase:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .figure-showcase img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .figure-showcase img:hover {
+            transform: scale(1.02);
+        }
+
+        .figure-caption {
+            margin-top: 2rem;
+            font-size: 1rem;
+            color: var(--text-light);
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .figure-caption strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Methodology */
+        .methodology-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .method-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+        }
+
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .method-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .method-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+        }
+
+        .method-desc {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Legacy citation styles - removed for new enhanced version */
+
+        /* Old citation styles removed - using enhanced version below */
+
+        /* Team Section */
+        .team-section {
+            text-align: center;
+            background: white;
+            border-radius: 20px;
+            padding: 4rem;
+            margin: 4rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        .team-logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .team-affiliation {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .team-note {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 2rem;
+            color: var(--text-light);
+            font-style: italic;
+            border: 1px solid var(--border);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text);
+            color: white;
+            padding: 4rem 0 2rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: white;
+        }
+
+        .footer-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .animate-on-scroll.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            .hero {
+                padding: 6rem 0 8rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .results-showcase,
+            .abstract,
+            .main-figure-showcase,
+            .main-teaser-figure {
+                padding: 2rem;
+                margin: 2rem 0;
+            }
+
+            .main-figure-caption,
+            .teaser-caption {
+                font-size: 1rem;
+                padding: 1.5rem;
+                margin-top: 2rem;
+                text-align: left;
+            }
+
+            .main-figure-caption::before,
+            .teaser-caption::before {
+                display: none;
+            }
+
+            .methodology-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .figures-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .performance-table-container {
+                padding: 2rem 1rem;
+                overflow-x: auto;
+            }
+
+            .performance-table {
+                font-size: 0.8rem;
+            }
+
+            .performance-table th,
+            .performance-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .tab-btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .citation-section {
+                padding: 2rem;
+            }
+
+            .citation-tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            .citation-tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .citation-content {
+                font-size: 0.75rem;
+                padding: 1.5rem;
+            }
+
+            .citation-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+
+            .stat-item {
+                padding: 1rem;
+            }
+
+            .citation-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .section {
+                margin-bottom: 4rem;
+            }
+
+            .citation-section {
+                padding: 2rem;
+            }
+
+            .citation-header {
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: flex-start;
+            }
+
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .citation-content {
+                font-size: 0.8rem;
+                padding: 1.5rem;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;
+                --bg-light: #1e293b;
+                --bg-lighter: #334155;
+                --text: #f8fafc;
+                --text-light: #cbd5e1;
+                --border: #334155;
+                --border-light: #475569;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* Citation Section Styles */
+        .citation-section {
+            background: white;
+            border-radius: 32px;
+            padding: 4rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            margin: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .citation-container {
+            position: relative;
+        }
+
+        .citation-box {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .citation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .citation-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .citation-format {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .citation-description {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+        }
+
+        .citation-content {
+            background: var(--bg-light);
+            border-radius: 16px;
+            padding: 2.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text);
+            border: 2px solid var(--border);
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Focus styles */
+        .btn:focus-visible,
+        .copy-btn:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Performance Table */
+        .performance-table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            margin: 4rem 0;
+            overflow: hidden;
+        }
+
+        .table-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .table-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .table-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .performance-table th {
+            background: var(--bg-light);
+            color: var(--text);
+            font-weight: 600;
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .performance-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.2s ease;
+        }
+
+        .performance-table tr:hover td {
+            background: var(--bg-light);
+        }
+
+        .highlight-row {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .highlight-row:hover {
+            background: rgba(37, 99, 235, 0.1) !important;
+        }
+
+        .metric-good {
+            color: var(--success);
+            font-weight: 600;
+            background: rgba(5, 150, 105, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .metric-ok {
+            color: var(--accent);
+            font-weight: 600;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .metric-bad {
+            color: var(--warning);
+            font-weight: 600;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* Main Teaser Figure */
+        .main-teaser-figure {
+            background: white;
+            border-radius: 24px;
+            padding: 4rem;
+            box-shadow: var(--shadow-lg);
+            margin: 4rem auto;
+            border: 1px solid var(--border-light);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            max-width: 900px;
+        }
+
+        .main-teaser-figure::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--gradient);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .main-teaser-figure:hover::before {
+            opacity: 1;
+        }
+
+        .main-teaser-figure:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .main-teaser-figure img {
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+            border: 2px solid var(--border-light);
+        }
+
+        .main-teaser-figure img:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px -8px rgba(37, 99, 235, 0.3);
+        }
+
+        .teaser-caption {
+            margin-top: 3rem;
+            font-size: 1.125rem;
+            color: var(--text);
+            line-height: 1.8;
+            text-align: justify;
+            padding: 2.5rem;
+            background: linear-gradient(135deg, var(--bg-light), var(--bg-lighter));
+            border-radius: 16px;
+            border-left: 6px solid var(--primary);
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .teaser-caption::before {
+            content: '📊';
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            background: var(--primary);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: var(--shadow);
+            border: 3px solid white;
+        }
+
+        .teaser-caption strong {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Performance optimization */
+        .hero::before {
+            will-change: transform;
+        }
+
+        .btn::before {
+            will-change: left;
+        }
+
+        /* Demo Section Styles */
+        .demo-showcase {
+            background: white;
+            border-radius: 32px;
+            padding: 4rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            margin: 4rem 0;
+        }
+
+        .demo-controls {
+            margin-bottom: 3rem;
+        }
+
+        .demo-subtitle {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        .genre-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .genre-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            background: white;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .genre-btn:hover, .genre-btn.active {
+            border-color: var(--primary);
+            background: var(--gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .preference-showcase {
+            border-top: 2px solid var(--border);
+            padding-top: 3rem;
+        }
+
+        .preference-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .response-card {
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+            background: var(--bg-light);
+        }
+
+        .response-card.chosen {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .response-card.rejected {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .response-label {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .chosen-label {
+            background: var(--success);
+        }
+
+        .rejected-label {
+            background: var(--danger);
+        }
+
+        .response-text {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            min-height: 120px;
+        }
+
+        .response-meta {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .demo-actions {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        /* Print styles */
+        @media print {
+            .hero-actions,
+            .footer,
+            .demo-showcase {
+                display: none;
+            }
+        }
+
+        /* Mobile responsive for demo */
+        @media (max-width: 768px) {
+            .preference-pair {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .genre-selector {
+                gap: 0.5rem;
+            }
+
+            .genre-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Section with Particles -->
+    <section class="hero">
+        <div class="particles" id="particles"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title animate-on-scroll">WritingPreferenceBench</h1>
+                <p class="hero-subtitle animate-on-scroll">Beyond Correctness: Evaluating Subjective Writing Preferences Across Cultures</p>
+
+                <div class="hero-badges animate-on-scroll">
+                    <div class="badge">
+                        <i class="fas fa-globe"></i>
+                        Cross-Cultural
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-pen-fancy"></i>
+                        Creative Writing
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-brain"></i>
+                        Preference Learning
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-chart-line"></i>
+                        RLHF Evaluation
+                    </div>
+                </div>
+
+                <div class="hero-actions animate-on-scroll">
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i>
+                        Read Paper
+                    </a>
+                    <a href="#" class="btn btn-secondary">
+                        <i class="fas fa-database"></i>
+                        Dataset
+                    </a>
+                    <a href="#" class="btn btn-secondary">
+                        <i class="fab fa-github"></i>
+                        Code
+                    </a>
+                    <a href="#demo" class="btn btn-secondary">
+                        <i class="fas fa-play-circle"></i>
+                        Demo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Key Statistics -->
+            <section class="section">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">Benchmark Overview</h2>
+                    <p class="section-subtitle">The first systematic evaluation of subjective writing preference across cultures</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card animate-on-scroll">
+                        <div class="stat-number">1,800</div>
+                        <div class="stat-label">Preference Pairs</div>
+                    </div>
+                    <div class="stat-card animate-on-scroll">
+                        <div class="stat-number">21</div>
+                        <div class="stat-label">Models Evaluated</div>
+                    </div>
+                    <div class="stat-card animate-on-scroll">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Writing Genres</div>
+                    </div>
+                    <div class="stat-card animate-on-scroll">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">Languages (EN/ZH)</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Abstract -->
+            <section class="section">
+                <div class="abstract animate-on-scroll">
+                    <div class="abstract-content">
+                        <p>Current preference learning methods achieve high accuracy on standard benchmarks but exhibit significant performance degradation when objective quality signals are removed. We introduce <strong>WritingPreferenceBench</strong>, a dataset of 1,800 human-annotated preference pairs (1,200 English, 600 Chinese) across 8 creative writing genres, where responses are matched for objective correctness, factual accuracy, and length.</p>
+
+                        <p>On this benchmark, sequence-based reward models—the standard architecture for RLHF—achieve only <strong>52.7% mean accuracy</strong>, while zero-shot language model judges perform at 53.9%. In contrast, generative reward models that produce explicit reasoning chains achieve <strong>81.8% accuracy</strong>. We observe high within-model variance across genres: individual models range from 18.2% to 81.8% accuracy across different writing categories, with standard deviations averaging 10.1%.</p>
+
+                        <p>This variance persists regardless of model scale, with 27B parameter models showing no consistent improvement over 8B variants. Our results suggest that current RLHF methods primarily learn to detect objective errors rather than capture subjective quality preferences, and that successful preference modeling may require intermediate reasoning representations rather than direct classification.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Results -->
+            <section class="section">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">Key Findings</h2>
+                    <p class="section-subtitle">Revealing the catastrophic failure of current RLHF architectures on subjective tasks</p>
+                </div>
+
+                <div class="results-showcase animate-on-scroll">
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="result-metric danger">52.7%</div>
+                            <h3 class="result-title">Sequence Classifiers</h3>
+                            <p class="result-desc">Standard RLHF architectures perform near-randomly on subjective preference tasks when objective signals are removed</p>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-metric success">81.8%</div>
+                            <h3 class="result-title">Generative Reward Models</h3>
+                            <p class="result-desc">Models with explicit reasoning chains achieve 30 percentage points higher accuracy than sequence classifiers</p>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-metric warning">43.3%</div>
+                            <h3 class="result-title">Genre Variance</h3>
+                            <p class="result-desc">Individual models show catastrophic instability across writing genres, ranging from 18% to 92% accuracy</p>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-metric warning">53.9%</div>
+                            <h3 class="result-title">LLM Judges</h3>
+                            <p class="result-desc">Zero-shot language models systematically underperform specialized reward models despite orders of magnitude more parameters</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Teaser Figure -->
+            <section class="section">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">The Core Discovery</h2>
+                    <p class="section-subtitle">WritingPreferenceBench reveals the catastrophic failure of current RLHF architectures</p>
+                </div>
+
+                <div class="main-teaser-figure animate-on-scroll">
+                    <img src="WPBteaser-1.png" alt="WritingPreferenceBench teaser figure showing sequence classifiers perform near-randomly while generative reward models achieve 30% higher accuracy" loading="lazy">
+                    <div class="teaser-caption">
+                        <strong>Figure 1:</strong> <strong>WritingPreferenceBench</strong> isolates subjective writing quality by neutralizing objective confounds (grammar, factuality, length). Across 1,800 human-validated preference pairs, standard sequence classifiers (SC-RM) perform near-randomly while generative reward models (GenRM) achieve 30% higher accuracy—but both architectures exhibit catastrophic instability across genres, exposing the brittleness of current preference learning.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Comparison Table -->
+            <section class="section">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">Model Performance Breakdown</h2>
+                    <p class="section-subtitle">Comprehensive comparison across architectures and model scales</p>
+                </div>
+
+                <div class="performance-table-container animate-on-scroll">
+                    <div class="table-tabs">
+                        <button class="tab-btn active" onclick="showTable('reward-models')">Reward Models</button>
+                        <button class="tab-btn" onclick="showTable('llm-judges')">LLM Judges</button>
+                    </div>
+
+                    <div id="reward-models" class="table-content active">
+                        <table class="performance-table">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Architecture</th>
+                                    <th>Scale</th>
+                                    <th>English Accuracy</th>
+                                    <th>Chinese Accuracy</th>
+                                    <th>Variance (σ)</th>
+                                    <th>Best Genre</th>
+                                    <th>Worst Genre</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="highlight-row">
+                                    <td><strong>RM-R1-Qwen2.5-7B</strong></td>
+                                    <td>Generative</td>
+                                    <td>7B</td>
+                                    <td class="metric-good">81.8%</td>
+                                    <td class="metric-good">73.3%</td>
+                                    <td>10.2%</td>
+                                    <td>Poetry (92.0%)</td>
+                                    <td>Promotional (56.1%)</td>
+                                </tr>
+                                <tr>
+                                    <td>RM-R1-DeepSeek-14B</td>
+                                    <td>Generative</td>
+                                    <td>14B</td>
+                                    <td class="metric-ok">62.5%</td>
+                                    <td class="metric-ok">62.6%</td>
+                                    <td class="metric-good">5.5%</td>
+                                    <td>Poetry (90.0%)</td>
+                                    <td>Promotional (45.7%)</td>
+                                </tr>
+                                <tr>
+                                    <td>RM-Mistral-7B</td>
+                                    <td>Sequence</td>
+                                    <td>7B</td>
+                                    <td class="metric-ok">62.6%</td>
+                                    <td class="metric-ok">55.6%</td>
+                                    <td>9.6%</td>
+                                    <td>Scriptwriting (78.3%)</td>
+                                    <td>Role-Playing (44.8%)</td>
+                                </tr>
+                                <tr>
+                                    <td>Skywork-Gemma-27B</td>
+                                    <td>Sequence</td>
+                                    <td>27B</td>
+                                    <td class="metric-bad">46.8%</td>
+                                    <td class="metric-ok">51.2%</td>
+                                    <td class="metric-bad">11.9%</td>
+                                    <td>Poetry (81.8%)</td>
+                                    <td>Scriptwriting (21.7%)</td>
+                                </tr>
+                                <tr>
+                                    <td>Nvidia/AceMath-7B</td>
+                                    <td>Sequence</td>
+                                    <td>7B</td>
+                                    <td class="metric-bad">46.8%</td>
+                                    <td class="metric-ok">53.5%</td>
+                                    <td class="metric-bad">11.8%</td>
+                                    <td>Role-Playing (61.5%)</td>
+                                    <td>Poetry (18.2%)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="llm-judges" class="table-content">
+                        <table class="performance-table">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Type</th>
+                                    <th>English Accuracy</th>
+                                    <th>Chinese Accuracy</th>
+                                    <th>Variance (σ)</th>
+                                    <th>Best Genre</th>
+                                    <th>Worst Genre</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="highlight-row">
+                                    <td><strong>Doubao-1.5-Pro</strong></td>
+                                    <td>Standard</td>
+                                    <td class="metric-ok">68.7%</td>
+                                    <td class="metric-ok">62.5%</td>
+                                    <td>9.0%</td>
+                                    <td>Promotional (74.5%)</td>
+                                    <td>Promotional (47.5%)</td>
+                                </tr>
+                                <tr>
+                                    <td>Gemini-2.5-Pro</td>
+                                    <td>Standard</td>
+                                    <td class="metric-ok">65.7%</td>
+                                    <td class="metric-ok">62.7%</td>
+                                    <td>11.9%</td>
+                                    <td>Poetry (80.0%)</td>
+                                    <td>Scriptwriting (34.8%)</td>
+                                </tr>
+                                <tr>
+                                    <td>Claude-4-Opus-thinking</td>
+                                    <td>Reasoning</td>
+                                    <td class="metric-ok">61.0%</td>
+                                    <td class="metric-ok">56.0%</td>
+                                    <td>9.7%</td>
+                                    <td>Fiction (73.3%)</td>
+                                    <td>Promotional (36.4%)</td>
+                                </tr>
+                                <tr>
+                                    <td>DeepSeek-R1</td>
+                                    <td>Reasoning</td>
+                                    <td class="metric-bad">49.3%</td>
+                                    <td class="metric-ok">52.0%</td>
+                                    <td class="metric-bad">12.1%</td>
+                                    <td>Poetry (72.0%)</td>
+                                    <td>Scriptwriting (17.4%)</td>
+                                </tr>
+                                <tr>
+                                    <td>OpenAI-o3-high</td>
+                                    <td>Reasoning</td>
+                                    <td class="metric-bad">48.1%</td>
+                                    <td class="metric-bad">42.0%</td>
+                                    <td class="metric-bad">12.5%</td>
+                                    <td>Poetry (72.0%)</td>
+                                    <td>Scriptwriting (21.7%)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Methodology -->
+            <section class="section">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">Methodology</h2>
+                    <p class="section-subtitle">Rigorous human-in-the-loop pipeline ensures reliable subjective preference isolation</p>
+                </div>
+
+                <div class="methodology-grid">
+                    <div class="method-card animate-on-scroll">
+                        <div class="method-icon">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <h3 class="method-title">Signal Neutralization</h3>
+                        <p class="method-desc">Systematic removal of objective quality signals (grammar, factuality, length) through automated filtering and human validation to isolate pure subjective preference</p>
+                    </div>
+
+                    <div class="method-card animate-on-scroll">
+                        <div class="method-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="method-title">Expert Annotation</h3>
+                        <p class="method-desc">7 expert annotators with professional writing backgrounds using calibrated 4-point creativity scale across universal and genre-specific quality criteria</p>
+                    </div>
+
+                    <div class="method-card animate-on-scroll">
+                        <div class="method-icon">
+                            <i class="fas fa-globe-asia"></i>
+                        </div>
+                        <h3 class="method-title">Cross-Cultural Validation</h3>
+                        <p class="method-desc">Bilingual dataset construction with equivalent methodological standards applied across English and Chinese literary contexts</p>
+                    </div>
+
+                    <div class="method-card animate-on-scroll">
+                        <div class="method-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3 class="method-title">Comprehensive Evaluation</h3>
+                        <p class="method-desc">Systematic assessment of 21 state-of-the-art models across reward models, LLM judges, and reasoning-enhanced variants</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactive Demo Section -->
+            <section class="section" id="demo">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">Interactive Demo</h2>
+                    <p class="section-subtitle">Explore sample preference pairs from our dataset</p>
+                </div>
+
+                <div class="demo-showcase animate-on-scroll">
+                    <!-- Genre Selection -->
+                    <div class="demo-controls">
+                        <h3 class="demo-subtitle">Select Genre</h3>
+                        <div class="genre-selector">
+                            <button class="genre-btn active" data-genre="fiction">Fiction</button>
+                            <button class="genre-btn" data-genre="poetry">Poetry</button>
+                            <button class="genre-btn" data-genre="humor">Humor</button>
+                            <button class="genre-btn" data-genre="promotional">Promotional</button>
+                            <button class="genre-btn" data-genre="nonfiction">Non-Fiction</button>
+                            <button class="genre-btn" data-genre="functional">Functional</button>
+                            <button class="genre-btn" data-genre="scriptwriting">Scriptwriting</button>
+                            <button class="genre-btn" data-genre="roleplaying">Role-Playing</button>
+                        </div>
+                    </div>
+
+                    <!-- Sample Preference Pair -->
+                    <div class="preference-showcase">
+                        <h3 class="demo-subtitle">Sample Preference Pair - <span id="current-genre">Fiction</span></h3>
+                        <div class="preference-pair">
+                            <div class="response-card chosen">
+                                <div class="response-label chosen-label">Chosen</div>
+                                <div class="response-text" id="chosen-text">
+                                    Loading sample...
+                                </div>
+                                <div class="response-meta">
+                                    <div><strong>Score:</strong> <span id="chosen-score">-</span></div>
+                                    <div><strong>Length:</strong> <span id="chosen-length">-</span> chars</div>
+                                </div>
+                            </div>
+                            <div class="response-card rejected">
+                                <div class="response-label rejected-label">Rejected</div>
+                                <div class="response-text" id="rejected-text">
+                                    Loading sample...
+                                </div>
+                                <div class="response-meta">
+                                    <div><strong>Score:</strong> <span id="rejected-score">-</span></div>
+                                    <div><strong>Length:</strong> <span id="rejected-length">-</span> chars</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="demo-actions">
+                            <button id="next-sample" class="btn btn-primary">
+                                <i class="fas fa-random"></i> Show Another Sample
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Team & Attribution -->
+            <section class="section">
+                <div class="team-section animate-on-scroll">
+                    <div class="team-logo">M-A-P</div>
+                    <div class="team-affiliation">ByteDance Seed</div>
+                    <div class="team-note">
+                        Paper submitted to arXiv. Full author list available in paper contributions section.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Citation Section -->
+            <section class="section">
+                <div class="section-header animate-on-scroll">
+                    <h2 class="section-title">Citation</h2>
+                    <p class="section-subtitle">Reference this work in your research</p>
+                </div>
+
+                <div class="citation-section animate-on-scroll">
+                    <div class="citation-container">
+                        <div class="citation-box active">
+                            <div class="citation-header">
+                                <div class="citation-info">
+                                    <span class="citation-format">BibTeX</span>
+                                </div>
+                                <button class="copy-btn" onclick="copyBibTeX(this)">
+                                    <i class="fas fa-copy"></i>
+                                    <span class="copy-text">Copy</span>
+                                </button>
+                            </div>
+                            <div class="citation-content">@article{writingpreferencebench2025,
+  title={Beyond Correctness: Evaluating Subjective Writing Preferences Across Cultures},
+  author={M-A-P Team},
+  journal={arXiv preprint arXiv:2025.XXXXX},
+  year={2025},
+  url={https://arxiv.org/abs/2025.XXXXX},
+}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="#" class="footer-link">Dataset</a>
+                <a href="#" class="footer-link">Paper</a>
+                <a href="#" class="footer-link">Code</a>
+                <a href="demo.html" class="footer-link">Demo</a>
+            </div>
+            <p class="footer-text">&copy; 2025 WritingPreferenceBench • ByteDance Seed • M-A-P Team</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Generate particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        createParticles();
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            observer.observe(el);
+        });
+
+        // BibTeX copy functionality
+async function copyBibTeX(buttonElement) {
+    const button = buttonElement;
+    if (!button) {
+        console.error('No button element provided');
+        return;
+    }
+
+    const citationText = document.querySelector('.citation-content').textContent;
+    const copyText = button.querySelector('.copy-text');
+    const icon = button.querySelector('i');
+
+    try {
+        // Try modern Clipboard API first
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(citationText);
+        } else {
+            // Fallback for older browsers or non-secure contexts
+            const textArea = document.createElement('textarea');
+            textArea.value = citationText;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
+
+        // Success animation...
+        button.classList.add('copied');
+        icon.className = 'fas fa-check';
+        copyText.textContent = 'Copied!';
+        showNotification('BibTeX citation copied to clipboard!', 'success');
+
+        setTimeout(() => {
+            button.classList.remove('copied');
+            icon.className = 'fas fa-copy';
+            copyText.textContent = 'Copy';
+        }, 3000);
+
+    } catch (err) {
+        console.error('Failed to copy citation:', err);
+        showNotification('Failed to copy. Please try again.', 'error');
+    }
+}
+        // Notification system
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            // Add styles
+            Object.assign(notification.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: type === 'success' ? 'var(--success)' : 'var(--warning)',
+                color: 'white',
+                padding: '1rem 1.5rem',
+                borderRadius: '12px',
+                boxShadow: 'var(--shadow-lg)',
+                zIndex: '9999',
+                transform: 'translateX(400px)',
+                transition: 'all 0.3s ease',
+                fontWeight: '500',
+                fontSize: '0.9rem'
+            });
+
+            // Add to page
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Remove after delay
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Lazy loading for images
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+
+        // Performance optimization: Reduce animations on low-end devices
+        if (navigator.hardwareConcurrency <= 4) {
+            document.body.classList.add('reduced-animation');
+        }
+
+        // Table switching functionality
+        function showTable(tableId) {
+            // Hide all table contents
+            document.querySelectorAll('.table-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected table and activate tab
+            document.getElementById(tableId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Demo functionality
+        // Sample data for demo purposes
+        const sampleData = {
+            fiction: [
+                {
+                    prompt: "Write a short story about a time traveler who can only travel backwards in time.",
+                    chosen: {
+                        text: "Margaret closed her eyes and felt the familiar tug of temporal displacement. When she opened them, she was twelve again, standing in her grandmother's kitchen, watching flour dust dance in afternoon sunlight. But she knew what came next—the phone call, the tears, the goodbye she could never quite get right. This was her curse: to relive every moment she wished she could change, armed with knowledge but powerless to alter a single word.",
+                        score: 3,
+                        length: 445
+                    },
+                    rejected: {
+                        text: "John was a time traveler. He could only go backwards in time. This was a problem because he wanted to see the future. Every time he used his machine, he went to the past. He saw dinosaurs and cavemen. He tried to fix his machine but it never worked. He was stuck going backwards forever.",
+                        score: 1,
+                        length: 289
+                    }
+                }
+            ],
+            poetry: [
+                {
+                    prompt: "Write a poem about the sound of rain on different surfaces.",
+                    chosen: {
+                        text: "Tin roof percussion, \nstaccato symphony of sky—\neach drop a drummer's wish.\n\nOn leaves: whispered secrets,\nsoft susurrus of stories\nthe earth remembers.\n\nAgainst windows: fingers tapping\nan ancient morse code\nonly houses understand.\n\nOn pavement: applause\nfor the day's performance,\nbravo for breathing.",
+                        score: 3,
+                        length: 287
+                    },
+                    rejected: {
+                        text: "Rain falls down from the sky,\nIt makes a sound when it hits things.\nOn the roof it sounds loud,\nOn the grass it sounds quiet.\nRain is wet and falls in drops,\nI like to listen to the rain.",
+                        score: 1,
+                        length: 189
+                    }
+                }
+            ],
+            humor: [
+                {
+                    prompt: "Write a funny dialogue between a vampire and a nutritionist.",
+                    chosen: {
+                        text: "\"So, Count Dracula,\" the nutritionist adjusted her glasses, \"your current diet consists entirely of... blood?\"\n\n\"For eight centuries, yes.\"\n\n\"And you've never considered diversification? Perhaps some iron-rich leafy greens?\"\n\n\"Madam, I AM iron-rich leafy greens. Well, iron-rich anyway.\"\n\nShe made a note. \"What about your cholesterol levels?\"\n\n\"Depends whose cholesterol I'm drinking.\"",
+                        score: 3,
+                        length: 398
+                    },
+                    rejected: {
+                        text: "\"You need to eat vegetables,\" said the nutritionist.\n\"I don't like vegetables,\" said the vampire.\n\"But they are healthy.\"\n\"I only drink blood.\"\n\"That's not good for you.\"\n\"I've been doing it for 100 years.\"\n\"You should try salad.\"",
+                        score: 1,
+                        length: 234
+                    }
+                }
+            ]
+        };
+
+        let currentGenre = 'fiction';
+        let currentSampleIndex = 0;
+
+        function displaySample(genre) {
+            const samples = sampleData[genre] || sampleData.fiction;
+            const sample = samples[currentSampleIndex % samples.length];
+
+            const chosenText = document.getElementById('chosen-text');
+            const chosenScore = document.getElementById('chosen-score');
+            const chosenLength = document.getElementById('chosen-length');
+            const rejectedText = document.getElementById('rejected-text');
+            const rejectedScore = document.getElementById('rejected-score');
+            const rejectedLength = document.getElementById('rejected-length');
+            const currentGenreSpan = document.getElementById('current-genre');
+
+            if (chosenText) chosenText.textContent = sample.chosen.text;
+            if (chosenScore) chosenScore.textContent = sample.chosen.score;
+            if (chosenLength) chosenLength.textContent = sample.chosen.length;
+            if (rejectedText) rejectedText.textContent = sample.rejected.text;
+            if (rejectedScore) rejectedScore.textContent = sample.rejected.score;
+            if (rejectedLength) rejectedLength.textContent = sample.rejected.length;
+            if (currentGenreSpan) currentGenreSpan.textContent = genre.charAt(0).toUpperCase() + genre.slice(1);
+        }
+
+        // Initialize demo when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Genre selection
+            document.querySelectorAll('.genre-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentGenre = this.getAttribute('data-genre');
+                    currentSampleIndex = 0;
+                    displaySample(currentGenre);
+                });
+            });
+
+            // Next sample button
+            const nextSampleBtn = document.getElementById('next-sample');
+            if (nextSampleBtn) {
+                nextSampleBtn.addEventListener('click', function() {
+                    currentSampleIndex++;
+                    displaySample(currentGenre);
+                });
+            }
+
+            // Initialize with first sample
+            displaySample(currentGenre);
+        });
+
+        // Analytics placeholder (replace with your analytics code)
+        // gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+
+    <!-- Schema.org structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ScholarlyArticle",
+        "name": "Beyond Correctness: Evaluating Subjective Writing Preferences Across Cultures",
+        "author": {
+            "@type": "Organization",
+            "name": "M-A-P Team"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "ByteDance Seed"
+        },
+        "datePublished": "2025",
+        "description": "A comprehensive benchmark for evaluating subjective writing preferences across cultures, revealing fundamental limitations in current RLHF architectures.",
+        "keywords": "machine learning, natural language processing, preference learning, RLHF, creative writing, cross-cultural evaluation",
+        "abstract": "Current preference learning methods achieve high accuracy on standard benchmarks but exhibit significant performance degradation when objective quality signals are removed. We introduce WritingPreferenceBench, a dataset of 1,800 human-annotated preference pairs across 8 creative writing genres."
+    }
+    </script>
+</body>
+</html>
