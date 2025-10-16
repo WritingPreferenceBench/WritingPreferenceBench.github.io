@@ -1395,18 +1395,6 @@
             }
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #0f172a;
-                --bg-light: #1e293b;
-                --bg-lighter: #334155;
-                --text: #f8fafc;
-                --text-light: #cbd5e1;
-                --border: #334155;
-                --border-light: #475569;
-            }
-        }
-
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -1579,8 +1567,8 @@
 
                 <div class="performance-table-container animate-on-scroll">
                     <div class="table-tabs">
-                        <button class="tab-btn active" onclick="showTable('reward-models')">Reward Models</button>
-                        <button class="tab-btn" onclick="showTable('llm-judges')">LLM Judges</button>
+                        <button class="tab-btn active" onclick="showTable('reward-models', this)">Reward Models</button>
+                        <button class="tab-btn" onclick="showTable('llm-judges', this)">LLM Judges</button>
                     </div>
 
                     <div id="reward-models" class="table-content active">
@@ -1893,20 +1881,30 @@
             rootMargin: '0px 0px -30px 0px'
         };
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
+        const scheduleIdle = window.requestIdleCallback || function(callback) {
+            return setTimeout(callback, 0);
+        };
 
-        requestIdleCallback(() => {
-            document.querySelectorAll('.animate-on-scroll').forEach(el => {
-                observer.observe(el);
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            scheduleIdle(() => {
+                document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                    observer.observe(el);
+                });
             });
-        });
+        } else {
+            document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                el.classList.add('animate');
+            });
+        }
 
         async function copyBibTeX(buttonElement) {
             const button = buttonElement;
@@ -2028,7 +2026,7 @@
             }
         }
 
-        function showTable(tableId) {
+        function showTable(tableId, button) {
             document.querySelectorAll('.table-content').forEach(content => {
                 content.classList.remove('active');
             });
@@ -2038,7 +2036,9 @@
             });
 
             document.getElementById(tableId).classList.add('active');
-            event.target.classList.add('active');
+            if (button) {
+                button.classList.add('active');
+            }
         }
 
         const sampleData = {
